@@ -1,13 +1,17 @@
 import random
 
 
-class Terrain():
-    def __init__(self, resource):
+class BoardSquare():
+    def __init__(self, resource, chance):
         self.type = resource
+        self.probability = chance
         self.roads = [False, False, False, False, False, False]
 
     def getType():
         return self.type
+
+    def getProb():
+        return self.probability
 
     def buildRoad(index):
         self.roads[index] = True
@@ -29,18 +33,23 @@ class CatanGame():
             terrains.append("Hills")
         random.shuffle(terrains)
         terrain_objects = []
+        chances = []
+        chances.append(2)
+        chances.append(12)
+        for i in range(3, 12):
+            chances.append(i)
+            chances.append(i)
+        random.shuffle(chances)
+
         for i in range(0, len(terrains)):
-            terrain_objects.append(Terrain(terrains[i]))
+            if (terrains[i] == "Desert"):
+                terrain_objects.append(BoardSquare(terrains[i], -1))
+            else:
+                terrain_objects.append(BoardSquare(terrains[i], chances[i]))
         self.board = [[0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0],
                       [0, 0, 0]]
 
-        self.probabilities = [[0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 0],
-                              [0, 0, 0, 0], [0, 0, 0]]
         self.currentPlayer = 1
-
-    def _createBoard():
-        board = [[0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0],
-                 [0, 0, 0]]
 
     def getPossibleActions(self):
         possibleActions = []
