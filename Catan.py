@@ -5,7 +5,6 @@ class BoardSquare():
     def __init__(self, resource, chance):
         self.type = resource
         self.probability = chance
-        self.roads = [False, False, False, False, False, False]
 
     def getType():
         return self.type
@@ -13,11 +12,30 @@ class BoardSquare():
     def getProb():
         return self.probability
 
-    def buildRoad(index):
-        self.roads[index] = True
 
-    def roadIsBuilt(index):
-        return self.roads[index]
+class Road():
+    def __init__(self, v1, v2):
+        self.v1 = v1
+        self.v2 = v2
+        self.player = None
+
+    def getVertices():
+        return (v1, v2)
+
+    def build(p):
+        self.player = p
+
+    def isBuilt():
+        return self.player
+
+
+class Player():
+    def __init__(self, name):
+        self.name = name
+        self.resource_cards = []
+
+    def drawResourceCard(card):
+        self.resource_cards.append(card)
 
 
 class CatanGame():
