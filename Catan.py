@@ -23,7 +23,10 @@ class Road():
         return (v1, v2)
 
     def build(p):
+        if player is not None:
+            return False
         self.player = p
+        return True
 
     def isBuilt():
         return self.player
