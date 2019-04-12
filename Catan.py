@@ -1,16 +1,23 @@
 import random
 
 
-class BoardSquare():
+class Tile():
     def __init__(self, resource, chance):
         self.type = resource
         self.probability = chance
+        self.robber = False
 
     def getType():
         return self.type
 
     def getProb():
         return self.probability
+
+    def rob():
+        self.robber = True
+
+    def unRob():
+        self.robber = False
 
 
 class Road():
@@ -41,6 +48,8 @@ class Player():
     def __init__(self, name):
         self.name = name
         self.resource_cards = []
+        self.roads = []
+        self.vertices = []
 
     def drawResourceCard(card):
         self.resource_cards.append(card)
