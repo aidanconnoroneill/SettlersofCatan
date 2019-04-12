@@ -22,6 +22,11 @@ class Road():
     def getVertices():
         return (v1, v2)
 
+    def getOtherVertex(v):
+        if v1 == v:
+            return v2
+        return v1
+
     def build(p):
         if player is not None:
             return False
