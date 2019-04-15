@@ -1,5 +1,6 @@
 import random
 import BoardState
+import CatanVertex
 
 
 class Tile():
@@ -71,10 +72,21 @@ class CatanGame():
             else:
                 terrain_objects.append(Tile(terrains[i], chances[i]))
         vertices = []
-        print self.getAssociatedTiles(18)
-        for i in self.tilesToVertices:
-            vertices.append(CatanVertex.CatanVertex())
-        self.currentPlayer = 1
+
+        for vID in range(1, 55):
+            tileIDs = self.getAssociatedTiles(i)
+            tiles = []
+            for j in tileIDs:
+                tiles.append(terrain_objects[i - 1])
+            vertices.append(CatanVertex.CatanVertex(tiles, vID))
+        self.vertices = vertices
+        for i in self.roadsList:
+            v1 = self.vertices[i[0] - 1]
+            v2 = self.vertices[i[1] - 1]
+            road = Road(v1, v2)
+            v1.addRoad(road)
+            v2.addRoad(road)
+        print self.vertices[3].getRoads()
 
     def getAssociatedTiles(self, vNum):
         ans = []

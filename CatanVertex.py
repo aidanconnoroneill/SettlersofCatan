@@ -2,15 +2,15 @@
 
 
 class CatanVertex():
-    def __init__(self, tiles, id, settlementType):
+    def __init__(self, tiles, id):
 
         self.id = id
         self.tiles = tiles
-        self.roads = None
-        self.settlementType = 0
+        self.roads = []
+        self.settlementType = 0  #0 - not built, 1 - settlement 2 - city
 
-    def connectRoads(self, r):
-        self.roads = r
+    def addRoad(self, r):
+        self.roads.append(r)
 
     def getPlayer(self):
         return self.player
@@ -35,4 +35,8 @@ class CatanVertex():
         return False
 
     def build(self, player):
-        self.player = player
+        if (self.settlementType < 2):
+            self.settlementType += 1
+            self.player = player
+            return True
+        return False
