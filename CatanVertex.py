@@ -1,15 +1,16 @@
 # This Class is a representation of a vertex in Settlers of Catan
 
+
 class CatanVertex():
-    
-    def __init__(self, player, tiles, id, roads, settlementType):
+    def __init__(self, tiles, id, settlementType):
 
         self.id = id
-        self.self = player
         self.tiles = tiles
-        self.roads = roads
+        self.roads = None
         self.settlementType = 0
 
+    def connectRoads(self, r):
+        self.roads = r
 
     def getPlayer(self):
         return self.player
@@ -25,17 +26,13 @@ class CatanVertex():
 
     def canBuild(self, player):
 
-        if len(self.getRoads) > 2:
+        if len(self.roads) > 2:
             for road in self.roads:
-                for vertex in road.getVerticies():
-                    if vertex != "None":
+                for vertex in road.getVertices():
+                    if vertex is not None:
                         return False
-
             return True
-
         return False
 
-        def build(self, player):
-            self.player = player
-
-
+    def build(self, player):
+        self.player = player

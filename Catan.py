@@ -1,4 +1,5 @@
 import random
+import BoardState
 
 
 class Tile():
@@ -7,16 +8,16 @@ class Tile():
         self.probability = chance
         self.robber = False
 
-    def getType():
+    def getType(self):
         return self.type
 
-    def getProb():
+    def getProb(self):
         return self.probability
 
-    def rob():
+    def rob(self):
         self.robber = True
 
-    def unRob():
+    def unRob(self):
         self.robber = False
 
 
@@ -57,6 +58,32 @@ class Player():
 
 class CatanGame():
     def __init__(self):
+        terrains = self.initTerrains()
+        chances = self.initProbs()
+        self.tilesToVertices = BoardState.tilesToVertices
+        self.roadsList = BoardState.roadsList
+        terrain_objects = []
+        for i in range(0, len(terrains)):
+            if (terrains[i] == "Desert"):
+                t = Tile(terrains[i], -1)
+                t.rob()
+                terrain_objects.append(t)
+            else:
+                terrain_objects.append(Tile(terrains[i], chances[i]))
+        vertices = []
+        print self.getAssociatedTiles(18)
+        for i in self.tilesToVertices:
+            vertices.append(CatanVertex.CatanVertex())
+        self.currentPlayer = 1
+
+    def getAssociatedTiles(self, vNum):
+        ans = []
+        for i in self.tilesToVertices:
+            if vNum in self.tilesToVertices[i]:
+                ans.append(i)
+        return ans
+
+    def initTerrains(self):
         terrains = []
         terrains.append("Desert")
         for i in range(0, 4):
@@ -67,7 +94,9 @@ class CatanGame():
             terrains.append("Mountains")
             terrains.append("Hills")
         random.shuffle(terrains)
-        terrain_objects = []
+        return terrains
+
+    def initProbs(self):
         chances = []
         chances.append(2)
         chances.append(12)
@@ -75,16 +104,7 @@ class CatanGame():
             chances.append(i)
             chances.append(i)
         random.shuffle(chances)
-
-        for i in range(0, len(terrains)):
-            if (terrains[i] == "Desert"):
-                terrain_objects.append(BoardSquare(terrains[i], -1))
-            else:
-                terrain_objects.append(BoardSquare(terrains[i], chances[i]))
-        self.board = [[0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0, 0], [0, 0, 0, 0],
-                      [0, 0, 0]]
-
-        self.currentPlayer = 1
+        return chances
 
     def getPossibleActions(self):
         possibleActions = []
