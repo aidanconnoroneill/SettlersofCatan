@@ -1,8 +1,21 @@
 import Catan
+import argparse
+
+
+def init_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-n",
+        "--numplayers",
+        help="Set this to the number of players playing.",
+        type=int,
+        default=3)
+    return parser
 
 
 def main():
-    MyCatan = Catan.CatanGame()
+    parser = init_parser().parse_args()
+    MyCatan = Catan.CatanGame(parser.numplayers)
 
 
 if __name__ == "__main__":

@@ -58,7 +58,10 @@ class Player():
 
 
 class CatanGame():
-    def __init__(self):
+    def __init__(self, numPlayers):
+        if numPlayers < 3 or numPlayers > 5:
+            print "The number of players must be 3 or 4"
+            sys.exit()
         terrains = self.initTerrains()
         chances = self.initProbs()
         self.tilesToVertices = BoardState.tilesToVertices
@@ -72,7 +75,7 @@ class CatanGame():
             else:
                 terrain_objects.append(Tile(terrains[i], chances[i]))
         vertices = []
-
+        self.terrains = terrain_objects
         for vID in range(1, 55):
             tileIDs = self.getAssociatedTiles(i)
             tiles = []
@@ -86,7 +89,6 @@ class CatanGame():
             road = Road(v1, v2)
             v1.addRoad(road)
             v2.addRoad(road)
-        print self.vertices[3].getRoads()
 
     def getAssociatedTiles(self, vNum):
         ans = []
@@ -118,46 +120,46 @@ class CatanGame():
         random.shuffle(chances)
         return chances
 
-    def getPossibleActions(self):
-        possibleActions = []
-        for i in range(len(self.board)):
-            for j in range(len(self.board[i])):
-                if self.board[i][j] == 0:
-                    possibleActions.append(
-                        Action(player=self.currentPlayer, x=i, y=j))
-        return possibleActions
-
-    def takeAction(self, action):
-        newState = deepcopy(self)
-        newState.board[action.x][action.y] = action.player
-        newState.currentPlayer = self.currentPlayer * -1
-        return newState
-
-    def isTerminal(self):
-        for row in self.board:
-            if abs(sum(row)) == 3:
-                return True
-        for column in list(map(list, zip(*self.board))):
-            if abs(sum(column)) == 3:
-                return True
-        for diagonal in [[self.board[i][i] for i in range(len(self.board))], [
-                self.board[i][len(self.board) - i - 1]
-                for i in range(len(self.board))
-        ]]:
-            if abs(sum(diagonal)) == 3:
-                return True
-        return reduce(operator.mul, sum(self.board, []), 1)
-
-    def getReward(self):
-        for row in self.board:
-            if abs(sum(row)) == 3:
-                return sum(row) / 3
-        for column in list(map(list, zip(*self.board))):
-            if abs(sum(column)) == 3:
-                return sum(column) / 3
-        for diagonal in [[self.board[i][i] for i in range(len(self.board))], [
-                self.board[i][len(self.board) - i - 1]
-                for i in range(len(self.board))
-        ]]:
-            if abs(sum(diagonal)) == 3:
-                return sum(diagonal) / 3
+    # def getPossibleActions(self):
+    #     possibleActions = []
+    #     for i in range(len(self.board)):
+    #         for j in range(len(self.board[i])):
+    #             if self.board[i][j] == 0:
+    #                 possibleActions.append(
+    #                     Action(player=self.currentPlayer, x=i, y=j))
+    #     return possibleActions
+    #
+    # def takeAction(self, action):
+    #     newState = deepcopy(self)
+    #     newState.board[action.x][action.y] = action.player
+    #     newState.currentPlayer = self.currentPlayer * -1
+    #     return newState
+    #
+    # def isTerminal(self):
+    #     for row in self.board:
+    #         if abs(sum(row)) == 3:
+    #             return True
+    #     for column in list(map(list, zip(*self.board))):
+    #         if abs(sum(column)) == 3:
+    #             return True
+    #     for diagonal in [[self.board[i][i] for i in range(len(self.board))], [
+    #             self.board[i][len(self.board) - i - 1]
+    #             for i in range(len(self.board))
+    #     ]]:
+    #         if abs(sum(diagonal)) == 3:
+    #             return True
+    #     return reduce(operator.mul, sum(self.board, []), 1)
+    #
+    # def getReward(self):
+    #     for row in self.board:
+    #         if abs(sum(row)) == 3:
+    #             return sum(row) / 3
+    #     for column in list(map(list, zip(*self.board))):
+    #         if abs(sum(column)) == 3:
+    #             return sum(column) / 3
+    #     for diagonal in [[self.board[i][i] for i in range(len(self.board))], [
+    #             self.board[i][len(self.board) - i - 1]
+    #             for i in range(len(self.board))
+    #     ]]:
+    #         if abs(sum(diagonal)) == 3:
+    #             return sum(diagonal) / 3
