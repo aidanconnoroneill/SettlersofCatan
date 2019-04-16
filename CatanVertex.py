@@ -28,11 +28,19 @@ class CatanVertex():
     def canBuild(self, player):
 
         if len(self.roads) > 2:
+            playerRoad = 0
             for road in self.roads:
+                if road.player == player:
+                    playerRoad += 1
                 for vertex in road.getVertices():
                     if vertex is not None:
-                        return False
-            return True
+                        return False  
+
+            if playerRoad > 0:                  
+                return True
+
+            else: 
+                return False
         return False
 
     def build(self, player):

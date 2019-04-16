@@ -59,6 +59,23 @@ class Player():
     def drawResourceCard(self, card):
         self.resource_cards.append(card)
 
+    def settlementSites(self, verticies, player):
+        canBuild = []
+        for vertex in verticies:
+            if(vertex.canBuild(player)):
+                canBuild.append(vertex)
+        return canBuild
+
+    def roadSites(self, verticies, player):
+        canBuild = []
+
+        for vertex in verticies:
+            for road in vertex.roads:
+                for road2 in vertex.roads:
+                    if(road.player == player):
+                        if(road2.player == None):
+                            canBuild.append(road2)
+        return canBuild
 
 class CatanGame():
     def __init__(self, numPlayers):
@@ -135,8 +152,6 @@ class CatanGame():
                 return True
 
         return False
-
-    
 
     # def getPossibleActions(self):
     #     possibleActions = []
