@@ -8,6 +8,7 @@ class CatanVertex():
         self.tiles = tiles
         self.roads = []
         self.settlementType = 0  #0 - not built, 1 - settlement 2 - city
+        self.player = None
 
     def addRoad(self, r):
         self.roads.append(r)

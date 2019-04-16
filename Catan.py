@@ -1,7 +1,9 @@
 import random
 import BoardState
 import CatanVertex
+import sys
 
+#added self to a few method parameters
 
 class Tile():
     def __init__(self, resource, chance):
@@ -28,21 +30,21 @@ class Road():
         self.v2 = v2
         self.player = None
 
-    def getVertices():
-        return (v1, v2)
+    def getVertices(self):
+        return (self.v1, self.v2)
 
-    def getOtherVertex(v):
-        if v1 == v:
-            return v2
-        return v1
+    def getOtherVertex(self, v):
+        if self.v1 == v:
+            return self.v2
+        return self.v1
 
-    def build(p):
-        if player is not None:
+    def build(self, p):
+        if self.player is not None:
             return False
         self.player = p
         return True
 
-    def isBuilt():
+    def isBuilt(self):
         return self.player
 
 
@@ -52,20 +54,24 @@ class Player():
         self.resource_cards = []
         self.roads = []
         self.vertices = []
+        self.victoryPoints = 0
 
-    def drawResourceCard(card):
+    def drawResourceCard(self, card):
         self.resource_cards.append(card)
 
 
 class CatanGame():
     def __init__(self, numPlayers):
         if numPlayers < 3 or numPlayers > 5:
-            print "The number of players must be 3 or 4"
-            sys.exit()
+            print("The number of players must be 3 or 4")
+            sys.exit( )
         terrains = self.initTerrains()
         chances = self.initProbs()
+
         self.tilesToVertices = BoardState.tilesToVertices
         self.roadsList = BoardState.roadsList
+        self.players = []
+
         terrain_objects = []
         for i in range(0, len(terrains)):
             if (terrains[i] == "Desert"):
@@ -119,6 +125,18 @@ class CatanGame():
             chances.append(i)
         random.shuffle(chances)
         return chances
+
+    def insertPlayers(self, names):
+        self.players = names
+
+    def gameIsNotOver(self):
+        for player in self.players:
+            if player.victoryPoints == 10:
+                return True
+
+        return False
+
+    
 
     # def getPossibleActions(self):
     #     possibleActions = []
