@@ -5,6 +5,7 @@ import sys
 
 #added self to a few method parameters
 
+
 class Tile():
     def __init__(self, resource, chance):
         self.type = resource
@@ -62,7 +63,7 @@ class Player():
     def settlementSites(self, verticies, player):
         canBuild = []
         for vertex in verticies:
-            if(vertex.canBuild(player)):
+            if (vertex.canBuild(player)):
                 canBuild.append(vertex)
         return canBuild
 
@@ -72,16 +73,19 @@ class Player():
         for vertex in verticies:
             for road in vertex.roads:
                 for road2 in vertex.roads:
-                    if(road.player == player):
-                        if(road2.player == None):
+                    if (road.player == player):
+                        if (road2.player == None):
                             canBuild.append(road2)
+
+
         return canBuild
+
 
 class CatanGame():
     def __init__(self, numPlayers):
         if numPlayers < 3 or numPlayers > 5:
             print("The number of players must be 3 or 4")
-            sys.exit( )
+            sys.exit()
         terrains = self.initTerrains()
         chances = self.initProbs()
 
@@ -112,6 +116,31 @@ class CatanGame():
             road = Road(v1, v2)
             v1.addRoad(road)
             v2.addRoad(road)
+
+    def playGame(self):
+        winner = None
+        count = 0
+        while (True):
+            count += 1
+            if count > 100:
+                break
+            for player in self.players:
+                roll = random.randint(1, 6)
+                roll2 = random.randint(1, 6)
+                sum = roll + roll2
+                for vertex in self.built_vertices:
+                    for tile in vertex.tiles:
+                        if tile.probability == sum:
+                            for i in range(0, vertex.settlementType):
+                                vertex.player.drawResourceCard(tile.type)
+                while (True):
+                    move = player.makeMoves()
+                    if move is None:
+                        break
+                if player.victoryPoints >= 10:
+                    winner = player
+                    break
+        return winner
 
     def getAssociatedTiles(self, vNum):
         ans = []

@@ -16,6 +16,7 @@ def init_parser():
 def main():
     parser = init_parser().parse_args()
     MyCatan = Catan.CatanGame(parser.numplayers)
+    MyCatan.playGame()
 
 
 if __name__ == "__main__":

@@ -26,7 +26,6 @@ class CatanVertex():
         return self.settlementType
 
     def canBuild(self, player):
-
         if len(self.roads) > 2:
             playerRoad = 0
             for road in self.roads:
@@ -34,12 +33,10 @@ class CatanVertex():
                     playerRoad += 1
                 for vertex in road.getVertices():
                     if vertex is not None:
-                        return False  
-
-            if playerRoad > 0:                  
+                        return False
+            if playerRoad > 0:
                 return True
-
-            else: 
+            else:
                 return False
         return False
 
