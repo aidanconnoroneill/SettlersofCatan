@@ -219,12 +219,13 @@ class CatanGame():
 
         return possibleActions
     
-    # def takeAction(self, action):
-    #     newState = deepcopy(self)
-    #     newState.board[action.x][action.y] = action.player
-    #     newState.currentPlayer = self.currentPlayer * -1
-    #     return newState
-    #
+    def takeAction(self, player, action):
+        newState = deepcopy(self)
+        newState.players[player].action
+        newState.currentPlayer = self.currentPlayer * -1
+        return newState
+    
+    
     # def isTerminal(self):
     #     for row in self.board:
     #         if abs(sum(row)) == 3:
