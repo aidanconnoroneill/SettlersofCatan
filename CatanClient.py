@@ -15,7 +15,10 @@ def init_parser():
 
 def main():
     parser = init_parser().parse_args()
-    MyCatan = Catan.CatanGame(parser.numplayers)
+    players = []
+    for i in range(0, 3):
+        players.append(Catan.Player('Player' + str(i)))
+    MyCatan = Catan.CatanGame(parser.numplayers, players)
     MyCatan.playGame()
 
 
