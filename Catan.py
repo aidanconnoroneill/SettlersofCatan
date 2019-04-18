@@ -57,15 +57,16 @@ class Player():
         self.vertices = []
         self.victoryPoints = 0
 
-    def drawResourceCard(self, card):
-        self.resource_cards.append(card)
+        self.brick = 0
+        self.grain = 0
+        self.ore = 0
+        self.lumber = 0
+        self.wool = 0
 
-    def settlementSites(self, verticies, player):
-        canBuild = []
-        for vertex in verticies:
-            if (vertex.canBuild(player)):
-                canBuild.append(vertex)
-        return canBuild
+    # ACTIONS 
+    def drawResourceCard(self, card):
+        # must update resources
+        self.resource_cards.append(card)
 
     def roadSites(self, verticies, player):
         canBuild = []
@@ -76,10 +77,39 @@ class Player():
                     if (road.player == player):
                         if (road2.player == None):
                             canBuild.append(road2)
-
-
         return canBuild
 
+    def buildRoad(self, possitlbeSites):
+        for road in possitlbeSites:
+            # some heuristic
+            if(4):
+                road.build(self)
+
+
+    def canUpgradeSettlement(self, vetex):
+        if(vetex.settlementType == 1):
+            if(self.ore >= 3 and self.grain >= 2):
+                return True
+
+        return False
+
+    def upgradeSettleToCity(self, vertex):
+        vertex.settlementType = 2
+
+
+    def settlementSites(self, verticies, player):
+        canBuild = []
+        for vertex in verticies:
+            if (vertex.canBuild(player)):
+                canBuild.append(vertex)
+        return canBuild
+
+    def buildSettlement(self, possibleSites):
+
+        for vertex in possibleSites:
+            # Some heuristic
+            if(5):
+                vertex.build(self)
 
 class CatanGame():
     def __init__(self, numPlayers):
