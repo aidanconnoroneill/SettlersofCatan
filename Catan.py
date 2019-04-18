@@ -4,7 +4,11 @@ import CatanVertex
 import sys
 
 #added self to a few method parameters
-
+class Action():
+    def __init__(self, isRoad, pos, player):
+        self.isRoad = isRoad
+        self.pos = pos
+        self.player = player
 
 class Tile():
     def __init__(self, resource, chance):
@@ -76,15 +80,11 @@ class Player():
                 for road2 in vertex.roads:
                     if (road.player == player):
                         if (road2.player == None):
-                            canBuild.append(road2)
+                            canBuild.append(Action(True, road2, player))
         return canBuild
 
-    def buildRoad(self, possitlbeSites):
-        for road in possitlbeSites:
-            # some heuristic
-            if(4):
-                road.build(self)
-
+    def buildRoad(self, road):
+        road.build(self)
 
     def canUpgradeSettlement(self, vetex):
         if(vetex.settlementType == 1):
@@ -96,20 +96,15 @@ class Player():
     def upgradeSettleToCity(self, vertex):
         vertex.settlementType = 2
 
-
     def settlementSites(self, verticies, player):
         canBuild = []
         for vertex in verticies:
             if (vertex.canBuild(player)):
-                canBuild.append(vertex)
+                canBuild.append(Action(False, vertex, player))
         return canBuild
 
-    def buildSettlement(self, possibleSites):
-
-        for vertex in possibleSites:
-            # Some heuristic
-            if(5):
-                vertex.build(self)
+    def buildSettlement(self, vertex):
+        vertex.build(self)
 
 class CatanGame():
     def __init__(self, numPlayers):
@@ -212,15 +207,18 @@ class CatanGame():
 
         return False
 
-    # def getPossibleActions(self):
-    #     possibleActions = []
-    #     for i in range(len(self.board)):
-    #         for j in range(len(self.board[i])):
-    #             if self.board[i][j] == 0:
-    #                 possibleActions.append(
-    #                     Action(player=self.currentPlayer, x=i, y=j))
-    #     return possibleActions
-    #
+    def getPossibleActions(self, player, verticies):
+        possibleActions = []
+        buildRoadActions = []
+        buildSettlementActions = []
+
+        buildRoadActions = player.roadSites(verticies, player)
+        buildSettlementActions = player.settlementSites(verticies, player)
+
+        possibleActions = buildRoadActions + buildSettlementActions
+
+        return possibleActions
+    
     # def takeAction(self, action):
     #     newState = deepcopy(self)
     #     newState.board[action.x][action.y] = action.player
