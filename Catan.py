@@ -72,10 +72,18 @@ class Player():
         # must update resources
         self.resource_cards.append(card)
 
-    def roadSites(self, verticies, player):
+
+    def settlementSites(self, vertices, player):
+        canBuild = []
+        for vertex in vertices:
+            if (vertex.canBuild(player)):
+                canBuild.append(vertex)
+        return canBuild
+
+    def roadSites(self, vertices, player):
         canBuild = []
 
-        for vertex in verticies:
+        for vertex in vertices:
             for road in vertex.roads:
                 for road2 in vertex.roads:
                     if (road.player == player):
@@ -106,8 +114,39 @@ class Player():
     def buildSettlement(self, vertex):
         vertex.build(self)
 
+    def getScore(self, vertex):
+        score = 0.0
+        for tile in vertex.tiles:
+            tile_score = 0.0
+            if tile.type == 'Forest':
+                tile_score += 3
+            if tile.type == 'Fields':
+                tile_score += 2
+            if tile.type == 'Pasture':
+                tile_score += 1
+            if tile.type == 'Mountains':
+                tile_score += 2
+            if tile.type == 'Hills':
+                tile_score += 3
+            tile_score *= (6.0 - abs(6.0 - tile.probability)) / 36.0
+            score += tile_score
+        return score
+
+    def pickFirst(self, vertices):
+        best = None
+        best_score = 0
+        for i in range(0, len(vertices)):
+            if best is None and vertices[i].player is None:
+                best = vertices[i]
+                best_score = self.getScore(vertices[i])
+            elif vertices[i].player is None:
+                score = self.getScore(vertices[i])
+                if score > best_score:
+                    best_score = score
+                    best = vertices[i]
+
 class CatanGame():
-    def __init__(self, numPlayers):
+    def __init__(self, numPlayers, players):
         if numPlayers < 3 or numPlayers > 5:
             print("The number of players must be 3 or 4")
             sys.exit()
@@ -219,13 +258,20 @@ class CatanGame():
 
         return possibleActions
     
-    def takeAction(self, player, action):
+    def takeAction(self, action):
         newState = deepcopy(self)
-        newState.players[player].action
+        if action.is_road:
+            newState.roadsList[action.pos].player = action.player
+            action.player.brick -=1
+            action.player.lumber -=1
+        # else:
+            # newState.
+        # TODO: disqualify if cheated
+
+        newState.board[action.x][action.y] = action.player
         newState.currentPlayer = self.currentPlayer * -1
         return newState
-    
-    
+
     # def isTerminal(self):
     #     for row in self.board:
     #         if abs(sum(row)) == 3:
