@@ -303,35 +303,14 @@ class CatanGame():
 
         return newState
 
-
-
-
     def isTerminal(self):
+        for player in self.players:
+            if player.victoryPoints >= 10:
+                return True
+        return False
 
-        for row in self.board:
-            if abs(sum(row)) == 3:
-                return True
-        for column in list(map(list, zip(*self.board))):
-            if abs(sum(column)) == 3:
-                return True
-        for diagonal in [[self.board[i][i] for i in range(len(self.board))], [
-                self.board[i][len(self.board) - i - 1]
-                for i in range(len(self.board))
-        ]]:
-            if abs(sum(diagonal)) == 3:
-                return True
-        return reduce(operator.mul, sum(self.board, []), 1)
-    
     def getReward(self):
-        for row in self.board:
-            if abs(sum(row)) == 3:
-                return sum(row) / 3
-        for column in list(map(list, zip(*self.board))):
-            if abs(sum(column)) == 3:
-                return sum(column) / 3
-        for diagonal in [[self.board[i][i] for i in range(len(self.board))], [
-                self.board[i][len(self.board) - i - 1]
-                for i in range(len(self.board))
-        ]]:
-            if abs(sum(diagonal)) == 3:
-                return sum(diagonal) / 3
+        for player in self.players:
+            if player.isCurrent:
+                return player.victoryPoints
+        return -1
