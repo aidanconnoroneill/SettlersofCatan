@@ -69,9 +69,17 @@ class Player():
 
     # ACTIONS 
     def drawResourceCard(self, card):
-        # must update resources
-        self.resource_cards.append(card)
 
+        if card == 'Forest':
+            self.lumber += 1
+        if card == 'Fields':
+            self.grain += 1
+        if card == 'Pasture':
+            self.wool += 1
+        if card == 'Mountains':
+            self.ore += 1
+        if card == 'Hills':
+            self.brick += 1
 
     def settlementSites(self, vertices, player):
         canBuild = []
@@ -94,8 +102,16 @@ class Player():
     def buildRoad(self, road):
         road.build(self)
 
-    def canUpgradeSettlement(self, vetex):
-        if(vetex.settlementType == 1):
+    def settlementsToUpgrade(self, vertices, player):
+        canUpgrade = []
+        for vertex in vertices:
+            if(player.canUpgradeSettlement(vertex)):
+                canUpgrade.append(Action(False, vertex, player))
+
+        return canUpgrade
+
+    def canUpgradeSettlement(self, vertex):
+        if(vertex.settlementType == 1):
             if(self.ore >= 3 and self.grain >= 2):
                 return True
 
@@ -104,9 +120,9 @@ class Player():
     def upgradeSettleToCity(self, vertex):
         vertex.settlementType = 2
 
-    def settlementSites(self, verticies, player):
+    def settlementSites(self, vertices, player):
         canBuild = []
-        for vertex in verticies:
+        for vertex in vertices:
             if (vertex.canBuild(player)):
                 canBuild.append(Action(False, vertex, player))
         return canBuild
@@ -156,6 +172,7 @@ class CatanGame():
         self.tilesToVertices = BoardState.tilesToVertices
         self.roadsList = BoardState.roadsList
         self.players = []
+        self.currentPlayer = 0
 
         terrain_objects = []
         for i in range(0, len(terrains)):
@@ -246,57 +263,75 @@ class CatanGame():
 
         return False
 
-    def getPossibleActions(self, player, verticies):
+    def getPossibleActions(self, player, vertices):
         possibleActions = []
         buildRoadActions = []
         buildSettlementActions = []
 
-        buildRoadActions = player.roadSites(verticies, player)
-        buildSettlementActions = player.settlementSites(verticies, player)
+        buildRoadActions = player.roadSites(vertices, player)
+        buildSettlementActions = player.settlementSites(vertices, player)
+        upgradeSettlementActions = player.settlementsToUpgrade(vertices, player)
 
-        possibleActions = buildRoadActions + buildSettlementActions
+        possibleActions = buildRoadActions + buildSettlementActions + upgradeSettlementActions
 
         return possibleActions
     
     def takeAction(self, action):
-        newState = deepcopy(self)
+        newState = self.deepcopy(self)
+        # Road Location
         if action.is_road:
             newState.roadsList[action.pos].player = action.player
-            action.player.brick -=1
-            action.player.lumber -=1
-        # else:
-            # newState.
-        # TODO: disqualify if cheated
+            newState.action.player.brick -=1
+            newState.action.player.lumber -=1
+        # Settlement Location
+        else:
+            # It is a settlement, needs to be upgraded
+            if(Action.pos.player != None):
+                newState.vertices[action.pos].upgradeSettleToCity(action.pos)
+                newState.action.player.ore -= 3
+                newState.action.player.grain -= 2
+            # It is a vacant place to build a settlement
+            else:
+                newState.vertices[action.pos].player = action.player
+                newState.action.player.brick -= 1
+                newState.action.player.lumber -= 1
+                newState.action.player.wool -= 1
+                newState.action.player.grain -= 1
 
-        newState.board[action.x][action.y] = action.player
-        newState.currentPlayer = self.currentPlayer * -1
+        newState.currentPlayer += 1
+        newState.currentPlayer = newState.players[newState.currentPlayer % len(newState.players)]
+
         return newState
 
-    # def isTerminal(self):
-    #     for row in self.board:
-    #         if abs(sum(row)) == 3:
-    #             return True
-    #     for column in list(map(list, zip(*self.board))):
-    #         if abs(sum(column)) == 3:
-    #             return True
-    #     for diagonal in [[self.board[i][i] for i in range(len(self.board))], [
-    #             self.board[i][len(self.board) - i - 1]
-    #             for i in range(len(self.board))
-    #     ]]:
-    #         if abs(sum(diagonal)) == 3:
-    #             return True
-    #     return reduce(operator.mul, sum(self.board, []), 1)
-    #
-    # def getReward(self):
-    #     for row in self.board:
-    #         if abs(sum(row)) == 3:
-    #             return sum(row) / 3
-    #     for column in list(map(list, zip(*self.board))):
-    #         if abs(sum(column)) == 3:
-    #             return sum(column) / 3
-    #     for diagonal in [[self.board[i][i] for i in range(len(self.board))], [
-    #             self.board[i][len(self.board) - i - 1]
-    #             for i in range(len(self.board))
-    #     ]]:
-    #         if abs(sum(diagonal)) == 3:
-    #             return sum(diagonal) / 3
+
+
+
+    def isTerminal(self):
+
+        for row in self.board:
+            if abs(sum(row)) == 3:
+                return True
+        for column in list(map(list, zip(*self.board))):
+            if abs(sum(column)) == 3:
+                return True
+        for diagonal in [[self.board[i][i] for i in range(len(self.board))], [
+                self.board[i][len(self.board) - i - 1]
+                for i in range(len(self.board))
+        ]]:
+            if abs(sum(diagonal)) == 3:
+                return True
+        return reduce(operator.mul, sum(self.board, []), 1)
+    
+    def getReward(self):
+        for row in self.board:
+            if abs(sum(row)) == 3:
+                return sum(row) / 3
+        for column in list(map(list, zip(*self.board))):
+            if abs(sum(column)) == 3:
+                return sum(column) / 3
+        for diagonal in [[self.board[i][i] for i in range(len(self.board))], [
+                self.board[i][len(self.board) - i - 1]
+                for i in range(len(self.board))
+        ]]:
+            if abs(sum(diagonal)) == 3:
+                return sum(diagonal) / 3
