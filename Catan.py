@@ -303,6 +303,12 @@ class CatanGame():
 
         return newState
 
+    def makeMoves():
+        # get possible actions
+        #WORK ON THIS, GET RUNNING
+        
+        return
+
     def isTerminal(self):
         for player in self.players:
             if player.victoryPoints >= 10:
