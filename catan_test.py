@@ -21,7 +21,7 @@ def main():
 
     Catan1.insertPlayers(players)
 
-    while(Catan1.gameIsNotOver()):
+    Catan1.playGame()
 
 
     # Actions on a turn:

@@ -2,6 +2,7 @@ import random
 import BoardState
 import CatanVertex
 import sys
+from mcts import mcts
 
 #added self to a few method parameters
 class Action():
@@ -198,7 +199,18 @@ class CatanGame():
             v1.addRoad(road)
             v2.addRoad(road)
 
+    def setUp(self):
+        for round in range(len(2)):
+            for player in self.players:
+                buildSettlementActions = player.settlementSites(self.vertices, player)
+                vertexPosition = random.randint(1, len(self.vertices))
+                player.buildSettlement(self.verticies[vertexPosition])
+
     def playGame(self):
+
+        # sets up first two rounds
+        self.setUp()
+
         winner = None
         count = 0
         while (True):
@@ -209,15 +221,22 @@ class CatanGame():
                 roll = random.randint(1, 6)
                 roll2 = random.randint(1, 6)
                 sum = roll + roll2
+
                 for vertex in self.built_vertices:
                     for tile in vertex.tiles:
                         if tile.probability == sum:
                             for i in range(0, vertex.settlementType):
                                 vertex.player.drawResourceCard(tile.type)
                 while (True):
-                    move = player.makeMoves()
-                    if move is None:
+                    mcts = mcts(timeLimit = 1000)
+
+                    action = mcts.search(self)
+
+                    if action is None:
                         break
+                    else:
+                        self.takeAction(action)
+
                 if player.victoryPoints >= 10:
                     winner = player
                     break
