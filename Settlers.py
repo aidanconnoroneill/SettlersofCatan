@@ -25,7 +25,7 @@ tilesToVertices.update(
         16: (34, 35, 36, 45, 46, 47),
         17: (40, 41, 42, 48, 49, 50),
         18: (42, 43, 44, 50, 51, 52),
-        19: (44, 45, 46, 52, 53, 54),
+        19: (44, 45, 46, 52, 53, 54)
     }
 )
 
@@ -110,7 +110,7 @@ roadsList = [
     (44, 52),
     (52, 53),
     (53, 54),
-    (46, 54),
+    (46, 54)
 ]
 verticesToTiles = dict()
 for i in range(1, 55):
@@ -277,25 +277,25 @@ class Game:
     def getPossibleActions(self):
         possibleActions = []
         for i in range(1, 55):
-            if playerCanBuildS(i, whoseTurn):
-                ac = Action(whoseTurn, False, True, False, False, -1, -1, i)
+            if self.playerCanBuildS(i, self.whoseTurn):
+                ac = Action(self.whoseTurn, False, True, False, False, -1, -1, i)
                 possibleActions.append(ac)
-            if playerCanBuildC(i, whoseTurn):
-                ac = Action(whoseTurn, False, False, True, False, -1, -1, i)
+            if self.playerCanBuildC(i, self.whoseTurn):
+                ac = Action(self.whoseTurn, False, False, True, False, -1, -1, i)
                 possibleActions.append(ac)
         for i in range(0, len(roadsBuilt)):
-            if playerCanBuildR(i, whoseTurn):
-                ac = Action(whoseTurn, True, False, False, False, -1, -1, i)
+            if self.playerCanBuildR(i, self.whoseTurn):
+                ac = Action(self.whoseTurn, True, False, False, False, -1, -1, i)
                 possibleActions.append(ac)
-        if whoseTurn == 0:
+        if self.whoseTurn == 0:
             for cardType in self.firstPlayerCards:
                 if self.firstPlayerCards[cardType] >= 4:
                     for i in range(1, 6):
                         if i == cardType:
                             continue
-                        ac = Action(whoseTurn, False, False, False, True, cardType, i, -1)
+                        ac = Action(self.whoseTurn, False, False, False, True, cardType, i, -1)
                         possibleActions.append(ac)
-        possibleActions.append(whoseTurn, False, False, False, False, -1, -1, -1)
+        possibleActions.append(self.whoseTurn, False, False, False, False, -1, -1, -1)
         return possibleActions
 
     def takeAction(self, action):
@@ -471,8 +471,8 @@ def main():
     playerHoarder = HoarderPlayer(playerOrder.index(2))
     players = [playerMonteCarlo, playerHeuristic, playerHoarder]
     players = random.shuffle(players)
-    mcts = mcts(timeLimit=1000)
-    action = mcts.search(initialState=g)
+    my_carlo = mcts(timeLimit=1000)
+    action = my_carlo.search(initialState=g)
     # g.roadsBuilt[4] = 2
     # print(g.playerCanBuildR(17, 1))
 
