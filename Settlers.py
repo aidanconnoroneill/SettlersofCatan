@@ -147,7 +147,7 @@ class Action:
     ):
         self.pIndex = pIndex
         self.isRoad = isRoad
-        self.isSettlmenet = isSettlement
+        self.isSettlement = isSettlement
         self.isCity = isCity
         self.isTrade = isTrade
         self.index = index
@@ -231,9 +231,9 @@ class Game:
         for tile in tilesToVertices:
             if self.chances[tile - 1] == two_dice:
                 for vertex in tilesToVertices[tile]:
-                    if verticesBuilt[vertex - 1] != 0:
-                        player = verticesBuilt[vertex - 1] / 3 + 1
-                        numCards = verticesBuilt[vertex - 1] % 3
+                    if self.verticesBuilt[vertex - 1] != 0:
+                        player = self.verticesBuilt[vertex - 1] / 3 + 1
+                        numCards = self.verticesBuilt[vertex - 1] % 3
                         terrainType = self.terrains[vertex - 1]
                         if player == 1:
                             old = self.firstPlayerCards[terrainType]
@@ -276,14 +276,14 @@ class Game:
     # TODO: pIndex, isRoad, isSettlement, isCity, isTrade, tradeFrom, tradeTo, index
     def getPossibleActions(self):
         possibleActions = []
-        for i in range(1, 55):
+        for i in range(0, 54):
             if self.playerCanBuildS(i, self.whoseTurn):
                 ac = Action(self.whoseTurn, False, True, False, False, -1, -1, i)
                 possibleActions.append(ac)
             if self.playerCanBuildC(i, self.whoseTurn):
                 ac = Action(self.whoseTurn, False, False, True, False, -1, -1, i)
                 possibleActions.append(ac)
-        for i in range(0, len(roadsBuilt)):
+        for i in range(0, len(self.roadsBuilt)):
             if self.playerCanBuildR(i, self.whoseTurn):
                 ac = Action(self.whoseTurn, True, False, False, False, -1, -1, i)
                 possibleActions.append(ac)
@@ -295,14 +295,14 @@ class Game:
                             continue
                         ac = Action(self.whoseTurn, False, False, False, True, cardType, i, -1)
                         possibleActions.append(ac)
-        possibleActions.append(self.whoseTurn, False, False, False, False, -1, -1, -1)
+        possibleActions.append(Action(self.whoseTurn, False, False, False, False, -1, -1, -1))
         return possibleActions
 
     def takeAction(self, action):
         # pIndex, isRoad, isSettlement, isCity, index
         newCatan = deepcopy(self)
         if action.isRoad:
-            newCatan.roadsBuilt[index] = action.pIndex
+            newCatan.roadsBuilt[action.index] = action.pIndex
             if action.pIndex == 0:
                 newCatan.firstPlayerCards[5] -= 1
                 newCatan.firstPlayerCards[1] -= 1
@@ -313,7 +313,7 @@ class Game:
                 newCatan.thirdPlayerCards[5] -= 1
                 newCatan.thirdPlayerCards[1] -= 1
         elif action.isSettlement:
-            newCatan.verticesBuilt[index] = (action.pIndex - 1) * 3 + 1
+            newCatan.verticesBuilt[action.index] = (action.pIndex - 1) * 3 + 1
             if action.pIndex == 0:
                 newCatan.firstPlayerCards[5] -= 1
                 newCatan.firstPlayerCards[1] -= 1
@@ -330,7 +330,7 @@ class Game:
                 newCatan.thirdPlayerCards[2] -= 1
                 newCatan.thirdPlayerCards[3] -= 1
         elif action.isCity:
-            newCatan.verticesBuilt[index] = (action.pIndex - 1) * 3 + 2
+            newCatan.verticesBuilt[action.index] = (action.pIndex - 1) * 3 + 2
             if action.pIndex == 0:
                 newCatan.firstPlayerCards[2] -= 2
                 newCatan.firstPlayerCards[4] -= 3
@@ -370,6 +370,7 @@ class Game:
                 newCatan.whoseTurn = 0
                 if newCatan.roundsInPick > 0:
                     newCatan.roundsInPick -= 1
+        return newCatan
 
     def initTerrains(self):
         terrains = []
@@ -471,8 +472,9 @@ def main():
     playerHoarder = HoarderPlayer(playerOrder.index(2))
     players = [playerMonteCarlo, playerHeuristic, playerHoarder]
     players = random.shuffle(players)
-    my_carlo = mcts(timeLimit=1000)
+    my_carlo = mcts(timeLimit=50000)
     action = my_carlo.search(initialState=g)
+    print(action)
     # g.roadsBuilt[4] = 2
     # print(g.playerCanBuildR(17, 1))
 
