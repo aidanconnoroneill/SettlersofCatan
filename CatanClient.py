@@ -9,7 +9,8 @@ def init_parser():
         "--numplayers",
         help="Set this to the number of players playing.",
         type=int,
-        default=3)
+        default=3,
+    )
     return parser
 
 
@@ -17,7 +18,7 @@ def main():
     parser = init_parser().parse_args()
     players = []
     for i in range(0, 3):
-        players.append(Catan.Player('Player' + str(i)))
+        players.append(Catan.Player("Player" + str(i)))
     MyCatan = Catan.CatanGame(parser.numplayers, players)
     MyCatan.playGame()
 

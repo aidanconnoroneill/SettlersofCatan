@@ -3,7 +3,6 @@
 
 class CatanVertex():
     def __init__(self, tiles, id):
-
         self.id = id
         self.tiles = tiles
         self.roads = []

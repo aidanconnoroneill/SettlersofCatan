@@ -304,7 +304,7 @@ class Game:
                     if self.playerCanBuildS(i, self.whoseTurn, True):
                         ac = Action(self.whoseTurn, False, True, False, False, -1, -1, i, True)
                         possibleActions.append(ac)    
-            possibleActions.append(Action(self.whoseTurn, False, False, False, False, -1, -1, -1, False))       
+            # possibleActions.append(Action(self.whoseTurn, False, False, False, False, -1, -1, -1, False))       
         else:
             for i in range(0, 54):
                 if self.playerCanBuildS(i, self.whoseTurn, False):
@@ -469,13 +469,13 @@ class Game:
                 if self.thirdPlayerCards[1] < 1 or self.thirdPlayerCards[2] < 1 or self.thirdPlayerCards[3] < 1 or self.thirdPlayerCards[5] < 1:
                     return False
         vIndexAdjacent = adjacentVertices[vIndex]
-        for i in vIndexAdjacent:
-            if self.verticesBuilt[i-1] != 0:
-                return False
+        # for i in vIndexAdjacent:
+        #     if self.verticesBuilt[i-1] != 0:
+        #         return False
         for i in range(0, len(roadsList)):
             roadTuple = roadsList[i]
             if roadTuple[0] == vIndex or roadTuple[1] == vIndex:
-                if self.roadsBuilt[i] != 0 and (self.roadsBuilt[i]-1 % 3) == pIndex:
+                if self.roadsBuilt[i] != 0 and (self.roadsBuilt[i]-1) == pIndex:
                     return True
         return False
 
