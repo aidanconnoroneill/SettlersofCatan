@@ -222,6 +222,7 @@ class Game:
         self.roundsInPick = 4
         for i in range(0, len(roadsList)):
             self.roadsBuilt.append(0)
+        self.players = []
         self.firstPlayerCards = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         self.secondPlayerCards = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         self.thirdPlayerCards = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
@@ -529,6 +530,40 @@ class Game:
         return False
 
 
+    def playGame(self):
+        # sets up first two rounds
+        winner = None
+        count = 0
+        while (True):
+            count += 1
+            if count > 100:
+                break
+            for player in self.players:
+                roll = random.randint(1, 6)
+                roll2 = random.randint(1, 6)
+                sum = roll + roll2
+
+                for vertex in self.built_vertices:
+                    for tile in vertex.tiles:
+                        if tile.probability == sum:
+                            for i in range(0, vertex.settlementType):
+                                vertex.player.drawResourceCard(tile.type)
+                while (True):
+                    mcts = mcts(timeLimit = 1000)
+
+                    action = mcts.search(self)
+
+                    if action is None:
+                        break
+                    else:
+                        self.takeAction(action)
+
+                if player.victoryPoints >= 10:
+                    winner = player
+                    break
+        return winner
+
+
 def main():
     g = Game()
     playerOrder = [0, 1, 2]
@@ -538,6 +573,9 @@ def main():
     playerHoarder = HoarderPlayer(playerOrder.index(2))
     players = [playerMonteCarlo, playerHeuristic, playerHoarder]
     players = random.shuffle(players)
+    g.players = players
+
+    g.playGame()
     # g.verticesBuilt[1] = 4
     # print(g.playerCanBuildS(2, 2, True))
     my_carlo = mcts(timeLimit=1000)
