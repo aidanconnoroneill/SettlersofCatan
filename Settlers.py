@@ -2,7 +2,9 @@ import random
 from collections import defaultdict
 from copy import deepcopy
 from mcts import mcts
-
+# https://link.springer.com/content/pdf/10.1007%2F978-3-642-17928-0.pdf
+# https://news.ycombinator.com/item?id=10209677
+# http://mcts.ai/pubs/mcts-survey-master.pdf
 tilesToVertices = dict()
 
 tilesToVertices.update(
@@ -143,7 +145,7 @@ class HoarderPlayer:
 
 class Action:
     def __init__(
-        self, pIndex, isRoad, isSettlement, isCity, isTrade, tradeFrom, tradeTo, index
+        self, pIndex, isRoad, isSettlement, isCity, isTrade, tradeFrom, tradeTo, index, wasFree
     ):
         self.pIndex = pIndex
         self.isRoad = isRoad
@@ -153,6 +155,7 @@ class Action:
         self.index = index
         self.tradeFrom = tradeFrom
         self.tradeTo = tradeTo
+        self.wasFree = wasFree
 
     def __str__(self):
         return str(
@@ -165,6 +168,7 @@ class Action:
                 self.tradeFrom,
                 self.tradeTo,
                 self.index,
+                self.wasFree
             )
         )
 
@@ -182,6 +186,7 @@ class Action:
             and self.tradeFrom == other.tradeFrom
             and self.tradeTo == other.tradeTo
             and self.index == other.index
+            and self.wasFree == other.wasFree
         )
 
     def __hash__(self):
@@ -195,6 +200,7 @@ class Action:
                 self.tradeFrom,
                 self.tradeTo,
                 self.index,
+                self.wasFree
             )
         )
 
@@ -213,7 +219,7 @@ class Game:
         for i in range(1, 55):
             self.verticesBuilt.append(0)
         self.roadsBuilt = []
-        self.roundsInPick = 2
+        self.roundsInPick = 4
         for i in range(0, len(roadsList)):
             self.roadsBuilt.append(0)
         self.firstPlayerCards = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
@@ -232,21 +238,33 @@ class Game:
             if self.chances[tile - 1] == two_dice:
                 for vertex in tilesToVertices[tile]:
                     if self.verticesBuilt[vertex - 1] != 0:
-                        player = self.verticesBuilt[vertex - 1] / 3 + 1
+                        print(vertex)
+                        player = (int)(self.verticesBuilt[vertex - 1] / 3) + 1
                         numCards = self.verticesBuilt[vertex - 1] % 3
-                        terrainType = self.terrains[vertex - 1]
+                        terrainType = self.terrains[tile - 1]
+                        if terrainType==0:
+                            continue
                         if player == 1:
                             old = self.firstPlayerCards[terrainType]
                             new = old + numCards
+                            print(self.firstPlayerCards)
+                            print("Please dear god update1")
                             self.firstPlayerCards[terrainType] = new
+                            print (self.firstPlayerCards)
                         if player == 2:
                             old = self.secondPlayerCards[terrainType]
                             new = old + numCards
+                            print(self.secondPlayerCards)
+                            print("Please dear god update2")
                             self.secondPlayerCards[terrainType] = new
+                            print(self.secondPlayerCards)
                         if player == 3:
                             old = self.thirdPlayerCards[terrainType]
                             new = old + numCards
+                            print(self.thirdPlayerCards)
+                            print("Please dear god update3")
                             self.thirdPlayerCards[terrainType] = new
+                            print(self.thirdPlayerCards)
 
     def getReward(self):
         if self.whoseTurn == 0:
@@ -273,63 +291,106 @@ class Game:
             or self.thirdPlayerScore >= 10
         )
 
-    # TODO: pIndex, isRoad, isSettlement, isCity, isTrade, tradeFrom, tradeTo, index
+    # TODO: pIndex, isRoad, isSettlement, isCity, isTrade, tradeFrom, tradeTo, index, wasFree
     def getPossibleActions(self):
         possibleActions = []
-        for i in range(0, 54):
-            if self.playerCanBuildS(i, self.whoseTurn):
-                ac = Action(self.whoseTurn, False, True, False, False, -1, -1, i)
-                possibleActions.append(ac)
-            if self.playerCanBuildC(i, self.whoseTurn):
-                ac = Action(self.whoseTurn, False, False, True, False, -1, -1, i)
-                possibleActions.append(ac)
-        for i in range(0, len(self.roadsBuilt)):
-            if self.playerCanBuildR(i, self.whoseTurn):
-                ac = Action(self.whoseTurn, True, False, False, False, -1, -1, i)
-                possibleActions.append(ac)
-        if self.whoseTurn == 0:
-            for cardType in self.firstPlayerCards:
-                if self.firstPlayerCards[cardType] >= 4:
-                    for i in range(1, 6):
-                        if i == cardType:
-                            continue
-                        ac = Action(self.whoseTurn, False, False, False, True, cardType, i, -1)
+        if self.roundsInPick > 0:
+            if(self.roundsInPick % 2 == 0):
+                for i in range(0, len(self.roadsBuilt)):
+                    if self.playerCanBuildR(i, self.whoseTurn, True):
+                        ac = Action(self.whoseTurn, True, False, False, False, -1, -1, i, True)
                         possibleActions.append(ac)
-        possibleActions.append(Action(self.whoseTurn, False, False, False, False, -1, -1, -1))
+            else:
+                for i in range(0, 54):
+                    if self.playerCanBuildS(i, self.whoseTurn, True):
+                        ac = Action(self.whoseTurn, False, True, False, False, -1, -1, i, True)
+                        possibleActions.append(ac)    
+            possibleActions.append(Action(self.whoseTurn, False, False, False, False, -1, -1, -1, False))       
+        else:
+            for i in range(0, 54):
+                if self.playerCanBuildS(i, self.whoseTurn, False):
+                    ac = Action(self.whoseTurn, False, True, False, False, -1, -1, i, False)
+                    possibleActions.append(ac)
+                if self.playerCanBuildC(i, self.whoseTurn):
+                    ac = Action(self.whoseTurn, False, False, True, False, -1, -1, i, False)
+                    possibleActions.append(ac)
+            for i in range(0, len(self.roadsBuilt)):
+                if self.playerCanBuildR(i, self.whoseTurn, False):
+                    ac = Action(self.whoseTurn, True, False, False, False, -1, -1, i, False)
+                    possibleActions.append(ac)
+            if self.whoseTurn == 0:
+                for cardType in self.firstPlayerCards:
+                    if self.firstPlayerCards[cardType] >= 4:
+                        for i in range(1, 6):
+                            if i == cardType:
+                                continue
+                            print(cardType)
+                            ac = Action(self.whoseTurn, False, False, False, True, cardType, i, -1, False)
+                            possibleActions.append(ac)
+            if self.whoseTurn == 1:
+                for cardType in self.secondPlayerCards:
+                    if self.firstPlayerCards[cardType] >= 4:
+                        for i in range(1, 6):
+                            if i == cardType:
+                                continue
+                            ac = Action(self.whoseTurn, False, False, False, True, cardType, i, -1, False)
+                            possibleActions.append(ac)
+            if self.whoseTurn == 2:
+                for cardType in self.thirdPlayerCards:
+                    if self.firstPlayerCards[cardType] >= 4:
+                        for i in range(1, 6):
+                            if i == cardType:
+                                continue
+                            ac = Action(self.whoseTurn, False, False, False, True, cardType, i, -1, False)
+                            possibleActions.append(ac)
+                
+            possibleActions.append(Action(self.whoseTurn, False, False, False, False, -1, -1, -1, False))
+        # print("Length of possible actions:")
+        # print(len(possibleActions))
+        # print("Rounds In Pick remaining:")
+        # print (self.roundsInPick)
+        # if len(possibleActions) == 1:
+        #     print(self.roundsInPick)
+        #     print(self.roadsBuilt)
+        #     print(self.verticesBuilt)
         return possibleActions
 
     def takeAction(self, action):
         # pIndex, isRoad, isSettlement, isCity, index
         newCatan = deepcopy(self)
         if action.isRoad:
-            newCatan.roadsBuilt[action.index] = action.pIndex
-            if action.pIndex == 0:
-                newCatan.firstPlayerCards[5] -= 1
-                newCatan.firstPlayerCards[1] -= 1
-            if action.pIndex == 1:
-                newCatan.secondPlayerCards[5] -= 1
-                newCatan.secondPlayerCards[1] -= 1
-            if action.pIndex == 2:
-                newCatan.thirdPlayerCards[5] -= 1
-                newCatan.thirdPlayerCards[1] -= 1
+            newCatan.roadsBuilt[action.index] = action.pIndex + 1
+            if not action.wasFree:
+                if action.pIndex == 0:
+                    newCatan.firstPlayerCards[5] -= 1
+                    newCatan.firstPlayerCards[1] -= 1
+                if action.pIndex == 1:
+                    newCatan.secondPlayerCards[5] -= 1
+                    newCatan.secondPlayerCards[1] -= 1
+                if action.pIndex == 2:
+                    newCatan.thirdPlayerCards[5] -= 1
+                    newCatan.thirdPlayerCards[1] -= 1
         elif action.isSettlement:
-            newCatan.verticesBuilt[action.index] = (action.pIndex - 1) * 3 + 1
-            if action.pIndex == 0:
-                newCatan.firstPlayerCards[5] -= 1
-                newCatan.firstPlayerCards[1] -= 1
-                newCatan.firstPlayerCards[2] -= 1
-                newCatan.firstPlayerCards[3] -= 1
-            if action.pIndex == 1:
-                newCatan.secondPlayerCards[5] -= 1
-                newCatan.secondPlayerCards[1] -= 1
-                newCatan.secondPlayerCards[2] -= 1
-                newCatan.secondPlayerCards[3] -= 1
-            if action.pIndex == 2:
-                newCatan.thirdPlayerCards[5] -= 1
-                newCatan.thirdPlayerCards[1] -= 1
-                newCatan.thirdPlayerCards[2] -= 1
-                newCatan.thirdPlayerCards[3] -= 1
+            print("Building settlement")
+            newCatan.verticesBuilt[action.index] = (action.pIndex) * 3 + 1
+            if not action.wasFree:
+                if action.pIndex == 0:
+                    newCatan.firstPlayerCards[5] -= 1
+                    newCatan.firstPlayerCards[1] -= 1
+                    newCatan.firstPlayerCards[2] -= 1
+                    newCatan.firstPlayerCards[3] -= 1
+                if action.pIndex == 1:
+                    newCatan.secondPlayerCards[5] -= 1
+                    newCatan.secondPlayerCards[1] -= 1
+                    newCatan.secondPlayerCards[2] -= 1
+                    newCatan.secondPlayerCards[3] -= 1
+                if action.pIndex == 2:
+                    newCatan.thirdPlayerCards[5] -= 1
+                    newCatan.thirdPlayerCards[1] -= 1
+                    newCatan.thirdPlayerCards[2] -= 1
+                    newCatan.thirdPlayerCards[3] -= 1
         elif action.isCity:
+            print("Building city??")
             newCatan.verticesBuilt[action.index] = (action.pIndex - 1) * 3 + 2
             if action.pIndex == 0:
                 newCatan.firstPlayerCards[2] -= 2
@@ -358,18 +419,21 @@ class Game:
                 newCatan.thirdPlayerCards[action.tradeFrom] -= 4
                 newCatan.thirdPlayerCards[action.tradeTo] += 1
         if (
-            not action.isRoad
+            (not action.isRoad
             and not action.isSettlement
             and not action.isCity
-            and not action.isTrade
+            and not action.isTrade)
         ):
             newCatan.whoseTurn += 1
-            if newCatan.roundsInPick <=0:
-                newCatan.distributeCards()
-            if newCatan.whoseTurn == 3:
-                newCatan.whoseTurn = 0
-                if newCatan.roundsInPick > 0:
-                    newCatan.roundsInPick -= 1
+        if newCatan.roundsInPick> 0:
+            newCatan.whoseTurn +=1
+        if newCatan.whoseTurn == 3:
+            newCatan.whoseTurn = 0
+            if newCatan.roundsInPick > 0:
+                newCatan.roundsInPick -= 1
+        if newCatan.roundsInPick <=0:
+            newCatan.distributeCards()
+
         return newCatan
 
     def initTerrains(self):
@@ -395,30 +459,30 @@ class Game:
         random.shuffle(chances)
         return chances
 
-    def playerCanBuildS(self, vIndex, pIndex):
-        if self.verticesBuilt[vIndex] / 3 == pIndex:
-            return True
-        if pIndex == 0:
-            if self.firstPlayerCards[1] < 1 or self.firstPlayerCards[2] < 1 or self.firstPlayerCards[3] < 1 or self.firstPlayerCards[5] < 1:
-                return False
-        if pIndex == 1:
-            if self.secondPlayerCards[1] < 1 or self.secondPlayerCards[2] < 1 or self.secondPlayerCards[3] < 1 or self.secondPlayerCards[5] < 1:
-                return False
-        if pIndex == 2:
-            if self.thirdPlayerCards[1] < 1 or self.thirdPlayerCards[2] < 1 or self.thirdPlayerCards[3] < 1 or self.thirdPlayerCards[5] < 1:
-                return False
+    def playerCanBuildS(self, vIndex, pIndex, isFree):
+        if not isFree:
+            if pIndex == 0:
+                if self.firstPlayerCards[1] < 1 or self.firstPlayerCards[2] < 1 or self.firstPlayerCards[3] < 1 or self.firstPlayerCards[5] < 1:
+                    return False
+            if pIndex == 1:
+                if self.secondPlayerCards[1] < 1 or self.secondPlayerCards[2] < 1 or self.secondPlayerCards[3] < 1 or self.secondPlayerCards[5] < 1:
+                    return False
+            if pIndex == 2:
+                if self.thirdPlayerCards[1] < 1 or self.thirdPlayerCards[2] < 1 or self.thirdPlayerCards[3] < 1 or self.thirdPlayerCards[5] < 1:
+                    return False
         vIndexAdjacent = adjacentVertices[vIndex]
         for i in vIndexAdjacent:
-            if self.verticesBuilt[i] != 0:
+            if self.verticesBuilt[i-1] != 0:
                 return False
         for i in range(0, len(roadsList)):
             roadTuple = roadsList[i]
             if roadTuple[0] == vIndex or roadTuple[1] == vIndex:
-                if self.roadsBuilt[i] != 0 and self.roadsBuilt[i] / 3 == pIndex:
+                if self.roadsBuilt[i] != 0 and (self.roadsBuilt[i]-1 % 3) == pIndex:
                     return True
         return False
 
     def playerCanBuildC(self, vIndex, pIndex):
+        # Enough cards
         if pIndex == 0:
             if self.firstPlayerCards[4] < 3 or self.firstPlayerCards[2] < 2:
                 return False
@@ -430,10 +494,12 @@ class Game:
                 return False   
         if self.verticesBuilt[vIndex] / 3 == pIndex:
             if self.verticesBuilt[vIndex] % 3 == 1:
-                return True
+                return True #Has this person's settlement on it
         return False
 
-    def playerCanBuildR(self, rIndex, pIndex):
+    def playerCanBuildR(self, rIndex, pIndex, isFree):
+        if isFree:
+            return self.roadsBuilt[rIndex] == 0
         if self.roadsBuilt[rIndex] > 0:
             return False
         if pIndex == 0:
@@ -458,7 +524,7 @@ class Game:
                 or roadTuple[0] == vB
                 or roadTuple[1] == vB
             ):
-                if self.roadsBuilt[i] == pIndex:
+                if self.roadsBuilt[i] == pIndex + 1:
                     return True
         return False
 
@@ -472,7 +538,9 @@ def main():
     playerHoarder = HoarderPlayer(playerOrder.index(2))
     players = [playerMonteCarlo, playerHeuristic, playerHoarder]
     players = random.shuffle(players)
-    my_carlo = mcts(timeLimit=50000)
+    # g.verticesBuilt[1] = 4
+    # print(g.playerCanBuildS(2, 2, True))
+    my_carlo = mcts(timeLimit=1000)
     action = my_carlo.search(initialState=g)
     print(action)
     # g.roadsBuilt[4] = 2
