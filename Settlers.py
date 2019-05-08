@@ -238,7 +238,6 @@ class Game:
             if self.chances[tile - 1] == two_dice:
                 for vertex in tilesToVertices[tile]:
                     if self.verticesBuilt[vertex - 1] != 0:
-                        print(vertex)
                         player = (int)(self.verticesBuilt[vertex - 1] / 3) + 1
                         numCards = self.verticesBuilt[vertex - 1] % 3
                         terrainType = self.terrains[tile - 1]
@@ -247,24 +246,24 @@ class Game:
                         if player == 1:
                             old = self.firstPlayerCards[terrainType]
                             new = old + numCards
-                            print(self.firstPlayerCards)
-                            print("Please dear god update1")
+                            # print(self.firstPlayerCards)
+                            # print("Please dear god update1")
                             self.firstPlayerCards[terrainType] = new
-                            print (self.firstPlayerCards)
+                            # print (self.firstPlayerCards)
                         if player == 2:
                             old = self.secondPlayerCards[terrainType]
                             new = old + numCards
-                            print(self.secondPlayerCards)
-                            print("Please dear god update2")
+                            # print(self.secondPlayerCards)
+                            # print("Please dear god update2")
                             self.secondPlayerCards[terrainType] = new
-                            print(self.secondPlayerCards)
+                            # print(self.secondPlayerCards)
                         if player == 3:
                             old = self.thirdPlayerCards[terrainType]
                             new = old + numCards
-                            print(self.thirdPlayerCards)
-                            print("Please dear god update3")
+                            # print(self.thirdPlayerCards)
+                            # print("Please dear god update3")
                             self.thirdPlayerCards[terrainType] = new
-                            print(self.thirdPlayerCards)
+                            # print(self.thirdPlayerCards)
 
     def getReward(self):
         if self.whoseTurn == 0:
@@ -324,7 +323,7 @@ class Game:
                         for i in range(1, 6):
                             if i == cardType:
                                 continue
-                            print(cardType)
+                            # print(cardType)
                             ac = Action(self.whoseTurn, False, False, False, True, cardType, i, -1, False)
                             possibleActions.append(ac)
             if self.whoseTurn == 1:
@@ -433,7 +432,6 @@ class Game:
                 newCatan.roundsInPick -= 1
         if newCatan.roundsInPick <=0:
             newCatan.distributeCards()
-        print(newCatan.whoseTurn)
         return newCatan
 
     def initTerrains(self):
@@ -492,7 +490,7 @@ class Game:
         if pIndex == 2:
             if self.thirdPlayerCards[4] < 3 or self.thirdPlayerCards[2] < 2:
                 return False   
-        if self.verticesBuilt[vIndex] / 3 == pIndex:
+        if (int)(self.verticesBuilt[vIndex] / 3) == pIndex:
             if self.verticesBuilt[vIndex] % 3 == 1:
                 return True #Has this person's settlement on it
         return False
