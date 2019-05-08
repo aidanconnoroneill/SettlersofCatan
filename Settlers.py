@@ -391,7 +391,7 @@ class Game:
                     newCatan.thirdPlayerCards[3] -= 1
         elif action.isCity:
             print("Building city??")
-            newCatan.verticesBuilt[action.index] = (action.pIndex - 1) * 3 + 2
+            newCatan.verticesBuilt[action.index] = (action.pIndex) * 3 + 2
             if action.pIndex == 0:
                 newCatan.firstPlayerCards[2] -= 2
                 newCatan.firstPlayerCards[4] -= 3
@@ -425,7 +425,7 @@ class Game:
             and not action.isTrade)
         ):
             newCatan.whoseTurn += 1
-        if newCatan.roundsInPick> 0:
+        elif newCatan.roundsInPick> 0:
             newCatan.whoseTurn +=1
         if newCatan.whoseTurn == 3:
             newCatan.whoseTurn = 0
@@ -433,7 +433,7 @@ class Game:
                 newCatan.roundsInPick -= 1
         if newCatan.roundsInPick <=0:
             newCatan.distributeCards()
-
+        print(newCatan.whoseTurn)
         return newCatan
 
     def initTerrains(self):
