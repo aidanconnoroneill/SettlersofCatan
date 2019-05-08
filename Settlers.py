@@ -1,4 +1,5 @@
 import random
+from CatanVertex import CatanVertex
 from collections import defaultdict
 from copy import deepcopy
 from mcts import mcts
@@ -127,20 +128,28 @@ for i in range(0, len(roadsList)):
 
 class MonteCarloPlayer:
     def __init__(self, pInd):
+        self.name = "MonteCarlo"
         self.index = pInd
-        return None
 
 
 class HeuristicPlayer:
     def __init__(self, pInd):
+        self.name = "Heuristic"
         self.index = pInd
-        return None
 
 
-class HoarderPlayer:
+class RandomPlayer:
     def __init__(self, pInd):
+        self.name = "Random"
         self.index = pInd
-        return None
+    
+    def chooseAction(self, game):
+        actions = game.getPossibleActions()
+        index = random.randint(0, len(actions) - 1)
+        action = actions[index]
+
+        return action
+
 
 
 class Action:
@@ -216,8 +225,10 @@ class Game:
         self.terrains = self.initTerrains()
         self.chances = self.initProbs()
         self.verticesBuilt = []
+        
         for i in range(1, 55):
             self.verticesBuilt.append(0)
+
         self.roadsBuilt = []
         self.roundsInPick = 4
         for i in range(0, len(roadsList)):
@@ -356,6 +367,7 @@ class Game:
         return possibleActions
 
     def takeAction(self, action):
+        print("Taking Action")
         # pIndex, isRoad, isSettlement, isCity, index
         newCatan = deepcopy(self)
         if action.isRoad:
@@ -536,28 +548,77 @@ class Game:
             count += 1
             if count > 100:
                 break
+
+            print(count)
+
+            # goes through a round
             for player in self.players:
                 roll = random.randint(1, 6)
                 roll2 = random.randint(1, 6)
                 sum = roll + roll2
 
-                for vertex in self.built_vertices:
-                    for tile in vertex.tiles:
-                        if tile.probability == sum:
-                            for i in range(0, vertex.settlementType):
-                                vertex.player.drawResourceCard(tile.type)
-                while (True):
-                    mcts = mcts(timeLimit = 1000)
+                # gives resources to players
+                self.distributeCards()
 
-                    action = mcts.search(self)
+                # Finds the current player
+                for player in self.players:
+                    if(player.index == self.whoseTurn):
+                        curPlayer = player
+                        playerNum = player.index
 
-                    if action is None:
-                        break
-                    else:
-                        self.takeAction(action)
+                # if the current player is random player
+                if (curPlayer.name == "Random"):
+                    while(True):
+                        print("Random making moves")
+                        action = curPlayer.chooseAction(self)
+                        if action is None:
+                            break
+                        else:
+                            self.takeAction(action)
 
-                if player.victoryPoints >= 10:
-                    winner = player
+                        if(curPlayer.index == 1):
+                            if(self.firstPlayerScore >= 10):
+                                winner = curPlayer.name
+                                break
+
+                        elif(curPlayer.index == 2):
+                            if(self.secondPlayerScore >= 10):
+                                winner = curPlayer.name
+                                break
+                        elif(curPlayer.index == 3):
+                            if(self.thirdPlayerScore >= 10):
+                                winner = curPlayer.name
+                                break
+                    
+
+                # if current player is Monte Carlo player
+                elif (curPlayer.name == "MonteCarlo"):
+                    while (True):
+                        print("MonteCarlo making moves")
+
+                        mcts = mcts(timeLimit = 1000)
+
+                        action = mcts.search(self)
+
+                        if action is None:
+                            break
+                        else:
+                            self.takeAction(action)
+
+                        if(curPlayer.index == 1):
+                            if(self.firstPlayerScore >= 10):
+                                winner = curPlayer.name
+                                break
+
+                        elif(curPlayer.index == 2):
+                            if(self.secondPlayerScore >= 10):
+                                winner = curPlayer.name
+                                break
+                        elif(curPlayer.index == 3):
+                            if(self.thirdPlayerScore >= 10):
+                                winner = curPlayer.name
+                                break
+                else:
                     break
         return winner
 
@@ -568,17 +629,18 @@ def main():
     random.shuffle(playerOrder)
     playerMonteCarlo = MonteCarloPlayer(playerOrder.index(0))
     playerHeuristic = HeuristicPlayer(playerOrder.index(1))
-    playerHoarder = HoarderPlayer(playerOrder.index(2))
-    players = [playerMonteCarlo, playerHeuristic, playerHoarder]
-    players = random.shuffle(players)
+    playerRandom = RandomPlayer(playerOrder.index(2))
+    players = [playerMonteCarlo, playerHeuristic, playerRandom]
     g.players = players
 
     g.playGame()
+
+
     # g.verticesBuilt[1] = 4
     # print(g.playerCanBuildS(2, 2, True))
-    my_carlo = mcts(timeLimit=1000)
-    action = my_carlo.search(initialState=g)
-    print(action)
+    # my_carlo = mcts(timeLimit=1000)
+    # action = my_carlo.search(initialState=g)
+    # print(action)
     # g.roadsBuilt[4] = 2
     # print(g.playerCanBuildR(17, 1))
 
