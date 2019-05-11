@@ -1,5 +1,4 @@
 import random
-from CatanVertex import CatanVertex
 from collections import defaultdict
 from copy import deepcopy
 from mcts import mcts
@@ -128,28 +127,118 @@ for i in range(0, len(roadsList)):
 
 class MonteCarloPlayer:
     def __init__(self, pInd):
-        self.name = "MonteCarlo"
         self.index = pInd
+        return None
+
+    def chooseAction(self, game):
+        my_carlo = mcts(self.index, timeLimit=1000)
+        action = my_carlo.search(initialState=game)
+
+        return action
 
 
 class HeuristicPlayer:
     def __init__(self, pInd):
-        self.name = "Heuristic"
         self.index = pInd
+        return None
+    
+    def chooseAction(self, game):
+        actions = game.getPossibleActions()
+        settlementActions = []
+        cityActions = []
+        roadActions = []
+        tradeActions = []
+        for action in actions:
+            if action.isSettlement:
+                settlementActions.append(action)
+            if action.isCity:
+                cityActions.append(action)
+            if action.isRoad:
+                roadActions.append(action)
+            if action.isTrade:
+                tradeActions.append(action)
+        bestSA = None
+        bestSAScore = 0.0
+        for sA in settlementActions:
+            if bestSA == None:
+                bestSA = sA
+                bestSAScore = self.scoreVertex(game, sA.index)
+            else:
+                newScore = self.scoreVertex(game, sA.index)
+                if newScore>bestSAScore:
+                    bestSAScore = newScore
+                    bestSA = sA 
+        if bestSA != None:
+            return bestSA
+        bestCA = None
+        bestCAScore = 0.0
+        for cA in cityActions:
+            if bestCA == None:
+                bestCA = cA
+                bestCAScore = self.scoreVertex(game, cA.index)
+            else:
+                newScore = self.scoreVertex(game, cA.index)
+                if newScore>bestCAScore:
+                    bestCAScore = newScore
+                    bestCA = cA 
+        if bestCA != None:
+            return bestCA
+        
+        bestRA = None
+        bestRAScore = 0.0
+        for rA in roadActions:
+            if bestRA == None:
+                bestRA = rA
+                bestRAScore = self.scoreVertex(game, roadsList[rA.index][0]) + self.scoreVertex(game, roadsList[rA.index][1])
+            else:
+                newScore = self.scoreVertex(game, roadsList[rA.index][0]) + self.scoreVertex(game, roadsList[rA.index][1])
+                if newScore>bestRAScore:
+                    bestRAScore = newScore
+                    bestRA = rA 
+        if bestRA != None:
+            return bestRA
+        for tA in tradeActions:
+            if self.index == 0 and game.firstPlayerCards[tA.tradeFrom] > 7:
+                return tA 
+            if self.index == 1 and game.secondPlayerCards[tA.tradeFrom] > 7:
+                return tA
+            if self.index == 2 and game.thirdPlayerCards[tA.tradeFrom] > 7:
+                return tA
+            
+        index = random.randint(0, len(actions) - 1)
+        action = actions[index]
 
+        return action
+    def scoreVertex(self, game, vIndex):
+        tiles = getAssociatedTiles(vIndex)
+        score = 0.0
+        for tile in tiles:
+            tile_score = 0.0
+            if game.terrains[tile-1] == 1:
+                tile_score += 3
+            if game.terrains[tile-1] == 2:
+                tile_score += 1
+            if game.terrains[tile-1] == 3:
+                tile_score += 1
+            if game.terrains[tile-1] == 4:
+                tile_score += 2
+            if game.terrains[tile-1] == 5:
+                tile_score += 3
+            tile_score *= (6.0 - abs(6.0 - game.chances[tile-1])) / 36.0
+            score += tile_score
+        return score
 
 class RandomPlayer:
     def __init__(self, pInd):
-        self.name = "Random"
         self.index = pInd
-    
+        return None
+
     def chooseAction(self, game):
         actions = game.getPossibleActions()
         index = random.randint(0, len(actions) - 1)
         action = actions[index]
 
         return action
-
 
 
 class Action:
@@ -225,15 +314,12 @@ class Game:
         self.terrains = self.initTerrains()
         self.chances = self.initProbs()
         self.verticesBuilt = []
-        
         for i in range(1, 55):
             self.verticesBuilt.append(0)
-
         self.roadsBuilt = []
         self.roundsInPick = 4
         for i in range(0, len(roadsList)):
             self.roadsBuilt.append(0)
-        self.players = []
         self.firstPlayerCards = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         self.secondPlayerCards = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
         self.thirdPlayerCards = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
@@ -278,22 +364,28 @@ class Game:
                             # print(self.thirdPlayerCards)
 
     def getReward(self):
-        if self.whoseTurn == 0:
-            if self.firstPlayerScore >= 10:
-                return True
-            if self.secondPlayerScore >= 10 or self.thirdPlayerScore >= 10:
-                return False
-        if self.whoseTurn == 1:
-            if self.secondPlayerScore >= 10:
-                return True
-            if self.firstPlayerScore >= 10 or self.thirdPlayerScore >= 10:
-                return False
-        if self.whoseTurn == 2:
-            if self.thirdPlayerScore >= 10:
-                return True
-            if self.secondPlayerScore >= 10 or self.firstPlayerScore >= 10:
-                return False
-        return False
+        if self.firstPlayerScore >=10:
+            return (1, 0)
+        if self.secondPlayerScore >=10:
+            return (1, 1)
+        if self.thirdPlayerScore >=10:
+            return (1, 2)
+        # if self.whoseTurn == 0:
+        #     if self.firstPlayerScore >= 10:
+        #         return (1, 0)
+        #     if self.secondPlayerScore >= 10 or self.thirdPlayerScore >= 10:
+        #         return (1, 0)
+        # if self.whoseTurn == 1:
+        #     if self.secondPlayerScore >= 10:
+        #         return (1, 0)
+        #     if self.firstPlayerScore >= 10 or self.thirdPlayerScore >= 10:
+        #         return (1, 0)
+        # if self.whoseTurn == 2:
+        #     if self.thirdPlayerScore >= 10:
+        #         return (1, 0)
+        #     if self.secondPlayerScore >= 10 or self.firstPlayerScore >= 10:
+        #         return False
+        # return False
 
     def isTerminal(self):
         return (
@@ -367,7 +459,6 @@ class Game:
         return possibleActions
 
     def takeAction(self, action):
-        print("Taking Action")
         # pIndex, isRoad, isSettlement, isCity, index
         newCatan = deepcopy(self)
         if action.isRoad:
@@ -383,7 +474,7 @@ class Game:
                     newCatan.thirdPlayerCards[5] -= 1
                     newCatan.thirdPlayerCards[1] -= 1
         elif action.isSettlement:
-            print("Building settlement")
+            # print("Building settlement")
             newCatan.verticesBuilt[action.index] = (action.pIndex) * 3 + 1
             if not action.wasFree:
                 if action.pIndex == 0:
@@ -402,7 +493,7 @@ class Game:
                     newCatan.thirdPlayerCards[2] -= 1
                     newCatan.thirdPlayerCards[3] -= 1
         elif action.isCity:
-            print("Building city??")
+            # print("Building city??")
             newCatan.verticesBuilt[action.index] = (action.pIndex) * 3 + 2
             if action.pIndex == 0:
                 newCatan.firstPlayerCards[2] -= 2
@@ -540,110 +631,31 @@ class Game:
         return False
 
 
-    def playGame(self):
-        # sets up first two rounds
-        winner = None
-        count = 0
-        while (True):
-            count += 1
-            if count > 100:
-                break
-
-            print(count)
-
-            # goes through a round
-            for player in self.players:
-                roll = random.randint(1, 6)
-                roll2 = random.randint(1, 6)
-                sum = roll + roll2
-
-                # gives resources to players
-                self.distributeCards()
-
-                # Finds the current player
-                for player in self.players:
-                    if(player.index == self.whoseTurn):
-                        curPlayer = player
-                        playerNum = player.index
-
-                # if the current player is random player
-                if (curPlayer.name == "Random"):
-                    while(True):
-                        print("Random making moves")
-                        action = curPlayer.chooseAction(self)
-                        if action is None:
-                            break
-                        else:
-                            self.takeAction(action)
-
-                        if(curPlayer.index == 1):
-                            if(self.firstPlayerScore >= 10):
-                                winner = curPlayer.name
-                                break
-
-                        elif(curPlayer.index == 2):
-                            if(self.secondPlayerScore >= 10):
-                                winner = curPlayer.name
-                                break
-                        elif(curPlayer.index == 3):
-                            if(self.thirdPlayerScore >= 10):
-                                winner = curPlayer.name
-                                break
-                    
-
-                # if current player is Monte Carlo player
-                elif (curPlayer.name == "MonteCarlo"):
-                    while (True):
-                        print("MonteCarlo making moves")
-
-                        mcts = mcts(timeLimit = 1000)
-
-                        action = mcts.search(self)
-
-                        if action is None:
-                            break
-                        else:
-                            self.takeAction(action)
-
-                        if(curPlayer.index == 1):
-                            if(self.firstPlayerScore >= 10):
-                                winner = curPlayer.name
-                                break
-
-                        elif(curPlayer.index == 2):
-                            if(self.secondPlayerScore >= 10):
-                                winner = curPlayer.name
-                                break
-                        elif(curPlayer.index == 3):
-                            if(self.thirdPlayerScore >= 10):
-                                winner = curPlayer.name
-                                break
-                else:
-                    break
-        return winner
-
-
 def main():
     g = Game()
     playerOrder = [0, 1, 2]
-    random.shuffle(playerOrder)
-    playerMonteCarlo = MonteCarloPlayer(playerOrder.index(0))
-    playerHeuristic = HeuristicPlayer(playerOrder.index(1))
-    playerRandom = RandomPlayer(playerOrder.index(2))
-    players = [playerMonteCarlo, playerHeuristic, playerRandom]
-    g.players = players
+    # random.shuffle(playerOrder)
+    playerMonteCarlo = MonteCarloPlayer(2)
+    playerRandom2 = RandomPlayer(0)
+    playerRandom = RandomPlayer(1)
+    players = [playerRandom2, playerRandom, playerMonteCarlo]
+    # players = random.shuffle(players)
+    wins = [0, 0, 0]
+    for i in range (0, 50):
+        print(i)
+        g = Game()
+        while(True):
+            # print(g.whoseTurn)
+            if(g.isTerminal()):
+                print(g.getReward())
+                wins[g.getReward()[1]] += 1
+                break
+            ac = players[g.whoseTurn].chooseAction(g)
+            g = g.takeAction(ac)
+        
 
-    g.playGame()
 
-
-    # g.verticesBuilt[1] = 4
-    # print(g.playerCanBuildS(2, 2, True))
-    # my_carlo = mcts(timeLimit=1000)
-    # action = my_carlo.search(initialState=g)
-    # print(action)
-    # g.roadsBuilt[4] = 2
-    # print(g.playerCanBuildR(17, 1))
-
+    print(wins)
 
 if __name__ == "__main__":
     main()

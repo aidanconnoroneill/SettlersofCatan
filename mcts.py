@@ -6,7 +6,11 @@ import random
 
 
 def randomPolicy(state):
+    i = 0
     while not state.isTerminal():
+        i += 1
+        if i > 1000:
+            return (0, 0)
         try:
             action = random.choice(state.getPossibleActions())
         except IndexError:
