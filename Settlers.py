@@ -362,7 +362,8 @@ class Game:
                             # print("Please dear god update3")
                             self.thirdPlayerCards[terrainType] = new
                             # print(self.thirdPlayerCards)
-
+# First index in return value is reward of winning: 1
+# Second index is the index of the player who won.  Useful for backprogagation in mcts.py
     def getReward(self):
         if self.firstPlayerScore >=10:
             return (1, 0)
@@ -397,18 +398,23 @@ class Game:
     # TODO: pIndex, isRoad, isSettlement, isCity, isTrade, tradeFrom, tradeTo, index, wasFree
     def getPossibleActions(self):
         possibleActions = []
+        # First if statement: We're in the set up rounds.  
         if self.roundsInPick > 0:
+            # First if statemetn: Everybody picks a road first
             if(self.roundsInPick % 2 == 0):
                 for i in range(0, len(self.roadsBuilt)):
-                    if self.playerCanBuildR(i, self.whoseTurn, True):
+                    if self.playerCanBuildR(i, self.whoseTurn, True): #Last parameter for canBuildR is that we're in draft mode
                         ac = Action(self.whoseTurn, True, False, False, False, -1, -1, i, True)
                         possibleActions.append(ac)
+            # Otherwise, everybody picks their settlement
             else:
                 for i in range(0, 54):
-                    if self.playerCanBuildS(i, self.whoseTurn, True):
+                    if self.playerCanBuildS(i, self.whoseTurn, True): #Last parameter for canBuildS is that we're in draft mode 
                         ac = Action(self.whoseTurn, False, True, False, False, -1, -1, i, True)
                         possibleActions.append(ac)    
-            # possibleActions.append(Action(self.whoseTurn, False, False, False, False, -1, -1, -1, False))       
+            # possibleActions.append(Action(self.whoseTurn, False, False, False, False, -1, -1, -1, False))    
+        # Otherwise, we're in the normal game   
+        # Options are: building Settlements, cities, roads, trading with the bank, or passing.  
         else:
             for i in range(0, 54):
                 if self.playerCanBuildS(i, self.whoseTurn, False):
@@ -427,7 +433,6 @@ class Game:
                         for i in range(1, 6):
                             if i == cardType:
                                 continue
-                            # print(cardType)
                             ac = Action(self.whoseTurn, False, False, False, True, cardType, i, -1, False)
                             possibleActions.append(ac)
             if self.whoseTurn == 1:
@@ -459,11 +464,12 @@ class Game:
         return possibleActions
 
     def takeAction(self, action):
-        # pIndex, isRoad, isSettlement, isCity, index
         newCatan = deepcopy(self)
+        # Get a copy of the new state.  To take an action in playGame, set old game to the return value of takeAction
+        # Player built a road
         if action.isRoad:
             newCatan.roadsBuilt[action.index] = action.pIndex + 1
-            if not action.wasFree:
+            if not action.wasFree: #Make sure this wasn't in the draft when roads are free
                 if action.pIndex == 0:
                     newCatan.firstPlayerCards[5] -= 1
                     newCatan.firstPlayerCards[1] -= 1
@@ -473,10 +479,11 @@ class Game:
                 if action.pIndex == 2:
                     newCatan.thirdPlayerCards[5] -= 1
                     newCatan.thirdPlayerCards[1] -= 1
+        # Player built a settlement
         elif action.isSettlement:
             # print("Building settlement")
             newCatan.verticesBuilt[action.index] = (action.pIndex) * 3 + 1
-            if not action.wasFree:
+            if not action.wasFree: #Make sure this wasn't in the draft when settlements are free
                 if action.pIndex == 0:
                     newCatan.firstPlayerCards[5] -= 1
                     newCatan.firstPlayerCards[1] -= 1
@@ -492,6 +499,7 @@ class Game:
                     newCatan.thirdPlayerCards[1] -= 1
                     newCatan.thirdPlayerCards[2] -= 1
                     newCatan.thirdPlayerCards[3] -= 1
+        # Player built a city
         elif action.isCity:
             # print("Building city??")
             newCatan.verticesBuilt[action.index] = (action.pIndex) * 3 + 2
@@ -527,14 +535,27 @@ class Game:
             and not action.isCity
             and not action.isTrade)
         ):
-            newCatan.whoseTurn += 1
-        elif newCatan.roundsInPick> 0:
-            newCatan.whoseTurn +=1
+            newCatan.whoseTurn += 1 
+        ###This is where we increment whose turn it is - turn only progresses to the next player if the player before passes.  
+        ###elif is for the snake draft
+        elif newCatan.roundsInPick> 0: #We're in the draft
+            if newCatan.roundsInPick > 2: #We're in the first two rounds of draft - order is (0, 1, 2)
+                newCatan.whoseTurn +=1 #Increment whose turn it is
+                if newCatan.roundsInPick == 3 and newCatan.whoseTurn == 3: #If it was the last pick in the first round of snake
+                    newCatan.whoseTurn =2  #Go to order (2, 1, 0)
+                    newCatan.roundsInPick -=1 #Decrement the number of rounds left to pick settlements and roads
+            else:
+                newCatan.whoseTurn -=1  #Otherwise, we're in the second part of draft - order is (2, 1, 0)
+                if newCatan.whoseTurn < 0: #If it's negative, go back to player 2's turn and decrement the number of rounds left
+                    newCatan.whoseTurn = 2
+                    newCatan.roundsInPick -=1
+                    if newCatan.roundsInPick == 0: #It was the last round in the draft --> change whose turn it was to player 1
+                        newCatan.whoseTurn = 0
         if newCatan.whoseTurn == 3:
             newCatan.whoseTurn = 0
             if newCatan.roundsInPick > 0:
                 newCatan.roundsInPick -= 1
-        if newCatan.roundsInPick <=0:
+        if newCatan.roundsInPick <=0 and newCatan.whoseTurn != self.whoseTurn: #Everybody gets cards if play has progressed
             newCatan.distributeCards()
         return newCatan
 
@@ -642,17 +663,14 @@ def main():
     # players = random.shuffle(players)
     wins = [0, 0, 0]
     for i in range (0, 50):
-        print(i)
         g = Game()
         while(True):
-            # print(g.whoseTurn)
             if(g.isTerminal()):
                 print(g.getReward())
                 wins[g.getReward()[1]] += 1
                 break
             ac = players[g.whoseTurn].chooseAction(g)
             g = g.takeAction(ac)
-        
 
 
     print(wins)
