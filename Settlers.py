@@ -327,6 +327,7 @@ class Game:
         self.secondPlayerScore = 0
         self.thirdPlayerScore = 0
         self.whoseTurn = 0
+        self.numTurns = 0
 
     def distributeCards(self):
         roll = random.randint(1, 6)
@@ -437,7 +438,7 @@ class Game:
                             possibleActions.append(ac)
             if self.whoseTurn == 1:
                 for cardType in self.secondPlayerCards:
-                    if self.firstPlayerCards[cardType] >= 4:
+                    if self.secondPlayerCards[cardType] >= 4:
                         for i in range(1, 6):
                             if i == cardType:
                                 continue
@@ -445,7 +446,7 @@ class Game:
                             possibleActions.append(ac)
             if self.whoseTurn == 2:
                 for cardType in self.thirdPlayerCards:
-                    if self.firstPlayerCards[cardType] >= 4:
+                    if self.thirdPlayerCards[cardType] >= 4:
                         for i in range(1, 6):
                             if i == cardType:
                                 continue
@@ -465,6 +466,7 @@ class Game:
 
     def takeAction(self, action):
         newCatan = deepcopy(self)
+
         # Get a copy of the new state.  To take an action in playGame, set old game to the return value of takeAction
         # Player built a road
         if action.isRoad:
@@ -529,6 +531,18 @@ class Game:
             if action.pIndex == 2:
                 newCatan.thirdPlayerCards[action.tradeFrom] -= 4
                 newCatan.thirdPlayerCards[action.tradeTo] += 1
+        for cardType in newCatan.firstPlayerCards:
+            if newCatan.firstPlayerCards[cardType] < 0:
+                print("first")
+                print(cardType)
+        for cardType in newCatan.secondPlayerCards:
+            if newCatan.secondPlayerCards[cardType] < 0:
+                print("second")
+                print(cardType)
+        for cardType in newCatan.thirdPlayerCards:
+            if newCatan.thirdPlayerCards[cardType] < 0:
+                print("third")
+                print(cardType)
         if (
             (not action.isRoad
             and not action.isSettlement
@@ -557,6 +571,7 @@ class Game:
                 newCatan.roundsInPick -= 1
         if newCatan.roundsInPick <=0 and newCatan.whoseTurn != self.whoseTurn: #Everybody gets cards if play has progressed
             newCatan.distributeCards()
+            newCatan.numTurns +=1
         return newCatan
 
     def initTerrains(self):
@@ -656,24 +671,27 @@ def main():
     g = Game()
     playerOrder = [0, 1, 2]
     # random.shuffle(playerOrder)
-    playerMonteCarlo = MonteCarloPlayer(2)
-    playerRandom2 = RandomPlayer(0)
-    playerRandom = RandomPlayer(1)
-    players = [playerRandom2, playerRandom, playerMonteCarlo]
+    player2 = MonteCarloPlayer(2)
+    player0 = MonteCarloPlayer(0)
+    player1 = MonteCarloPlayer(1)
+    players = [player0, player1, player2]
     # players = random.shuffle(players)
     wins = [0, 0, 0]
-    for i in range (0, 50):
+    numTurnsAVG = 0.0
+    for i in range (0, 25):
         g = Game()
         while(True):
             if(g.isTerminal()):
                 print(g.getReward())
                 wins[g.getReward()[1]] += 1
+                numTurnsAVG += g.numTurns / (25.0)
                 break
             ac = players[g.whoseTurn].chooseAction(g)
             g = g.takeAction(ac)
 
 
     print(wins)
+    print (numTurnsAVG)
 
 if __name__ == "__main__":
     main()
