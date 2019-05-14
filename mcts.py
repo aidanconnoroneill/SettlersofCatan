@@ -36,7 +36,7 @@ class mcts:
         ourPlayerIndex,
         timeLimit=None,
         iterationLimit=None,
-        explorationConstant=1 / math.sqrt(2),
+        explorationConstant=1 / math.log(3),
         rolloutPolicy=randomPolicy,
     ):
         if timeLimit != None:

@@ -1,4 +1,5 @@
 import random
+import math
 from collections import defaultdict
 from copy import deepcopy
 from mcts import mcts
@@ -130,8 +131,9 @@ class MonteCarloPlayer:
         self.index = pInd
         return None
 
-    def chooseAction(self, game):
+    def chooseAction(self, game, round):
         my_carlo = mcts(self.index, timeLimit=1000)
+        my_carlo.explorationConstant = 1 / ((round * round) / 2)
         action = my_carlo.search(initialState=game)
 
         return action
@@ -142,7 +144,7 @@ class HeuristicPlayer:
         self.index = pInd
         return None
     
-    def chooseAction(self, game):
+    def chooseAction(self, game, round):
         actions = game.getPossibleActions()
         settlementActions = []
         cityActions = []
@@ -233,7 +235,7 @@ class RandomPlayer:
         self.index = pInd
         return None
 
-    def chooseAction(self, game):
+    def chooseAction(self, game, round):
         actions = game.getPossibleActions()
         index = random.randint(0, len(actions) - 1)
         action = actions[index]
@@ -672,22 +674,26 @@ def main():
     playerOrder = [0, 1, 2]
     # random.shuffle(playerOrder)
     player2 = MonteCarloPlayer(2)
-    player0 = MonteCarloPlayer(0)
-    player1 = MonteCarloPlayer(1)
+    player0 = HeuristicPlayer(0)
+    player1 = RandomPlayer(1)
     players = [player0, player1, player2]
     # players = random.shuffle(players)
     wins = [0, 0, 0]
     numTurnsAVG = 0.0
+    round = 1
     for i in range (0, 25):
         g = Game()
+        print("Game: " + str(i))
         while(True):
             if(g.isTerminal()):
+                print("End of game")
                 print(g.getReward())
                 wins[g.getReward()[1]] += 1
                 numTurnsAVG += g.numTurns / (25.0)
                 break
-            ac = players[g.whoseTurn].chooseAction(g)
+            ac = players[g.whoseTurn].chooseAction(g, round)
             g = g.takeAction(ac)
+            round += 1
 
 
     print(wins)
